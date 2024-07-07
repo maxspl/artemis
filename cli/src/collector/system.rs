@@ -33,6 +33,9 @@ pub(crate) enum Commands {
         /// Output format. JSON or JSONL.
         #[arg(long, default_value_t = String::from("JSON"))]
         format: String,
+        /// Optional output directory for storing results
+        #[arg(long, default_value_t = String::from("./msp"))]
+        output_dir: String,
     },
 }
 
@@ -50,20 +53,23 @@ pub(crate) fn run_collector(command: &Commands, output: Output) {
         output,
         artifacts: Vec::new(),
     };
-    println!(
-        "[artemis] Writing output to: {}",
-        collector.output.directory
-    );
 
     match command {
-        Commands::Acquire { artifact, format } => {
+        Commands::Acquire { artifact, format, output_dir } => {
             if artifact.is_none() {
                 println!("No artifact provided");
                 return;
             }
-
+            
             let arti = artifact.as_ref().unwrap();
             collector.artifacts.push(setup_artifact(arti));
+            
+            // output directory from args
+            collector.output.directory = output_dir.to_string(); 
+            println!(
+                "[artemis] Writing output to: {}",
+                collector.output.directory
+            );
 
             if !format.is_empty() {
                 collector.output.format = format.to_string().to_lowercase();
